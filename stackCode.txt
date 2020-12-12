@@ -1,0 +1,87 @@
+
+
+#the opcode for the program below is: 
+#PUSH = 10000001
+#POP = 10000010
+#ADD = 10000011
+#MUL = 10000101
+#LI = 10000111
+#MOVE = 10010000
+#SYSCALL = 10001001
+#Lw = 10001000
+#i got this idea from Jonathan Hart on Piazza so my program 
+#may look similiar to what he suggested
+#im assuming that we are using 1 byte per character. 
+#we'll just assume that 0x50001C is what address $t4 is currently pointing to
+.data
+0x500000 WORD 3 
+0x500004 WORD 7	
+0x500008 WORD 5
+0x50000C WORD 4
+0x500010 asciiz "Answer = " 
+0x500019 asciiz "\n" 
+0x50001C word register
+
+.text
+
+main: 
+	10001000 01000 0x500000 #lw $t0, X using my own opcode for lw in encoding.pdf
+	10001000 01001 0x500004	#lw $t1, A
+	10001000 01010 0x500008 #lw $t2, B
+	10001000 01011 0x50000C #lw $t3, C
+
+	#using r format below with: opcode, rs, rt,  and then rd
+	#beneath the r-format os the 10000001 and 10000010 for the stack
+	
+	#10000101 01000 01000 01100 #100000101 $t4, $t0, $t0  # X**2 using my own opcode for 100000101t from encoding.pdf
+	
+		10000001 0x500000
+		10000001 0x500000
+		10000101
+		10000010 0x50001C
+	
+	#10000101 01001 01100 01001 #100000101 $t1, $t1, $t4  # A*X**2
+		10000001 0x500004
+		10000001 0x50001C
+		10000101
+		10000010 0x500004 #made it this far
+	
+	#10000101 01010 01000 01010 #100000101 $t2, $t2, $t0   # B*X
+		10000001 0x500008
+		10000001 0x500000 #
+		10000101
+		10000010 0x500008 #
+	#10000011 01001 01010 01001 #add $t1, $t1, $t2  # A*X**2 + B*X
+		10000001 0x500004 
+		10000001 0x500008 #
+		10000011 #
+		10000010 0x500004
+
+	#10000011 01001 01011 01011 #add $t3, $t1, $t3  # A*X**2 + B*X + C
+		10000001 0x500004
+		10000001 0x50000C
+		10000011
+		10000010 0x50000C		
+	
+	10001110 00100 0x500000010 #la $a0, ans    
+		
+	10000111 00010, 0100 #li $v0, 4    numbers are represented in hex
+	
+	10001001 #syscall
+	
+	10010000 00100 01011 #move $a0, $t3    
+	
+	10000111 00010, 0001 #li $v0, 1
+	
+	10001001 #syscall
+	
+	10001110 00100 0x50000019 #la $a0, nl 
+	
+	10000111 00010, 0100 #li $v0, 4
+
+	10001001 #syscall
+
+	10000111 00010 1010 #li $v0, 10          
+
+	10001001 #syscall
+
